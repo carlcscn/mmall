@@ -128,4 +128,17 @@ public class UserServiceImpl implements IUserService{
         return ServerResponse.createByErrorMessage("修改密码失败");
 
     }
+    public ServerResponse<String> resetPassword(String passwordOld,String passwordNew,User user){
+        int resultCount = userMapper.checkPassword(MD5Util.MD5EncodeUtf8(passwordOld),user.getId());
+        if(resultCount==0){
+            return ServerResponse.createByErrorMessage("旧密码错误");
+        }
+        user.setPassword(MD5Util.MD5EncodeUtf8(passwordNew));
+        int updateCount = userMapper.updateByPrimaryKeySelective(user);
+        if(updateCount>0){
+            return ServerResponse.createBySuccessMessage("密码更新成功");
+        }
+        return ServerResponse.createByErrorMessage("密码更新失败");
+    }
+
 }
