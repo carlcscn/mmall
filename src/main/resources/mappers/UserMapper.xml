@@ -171,8 +171,8 @@
 
   </select>
   <select id="selectQuestionByUsername" resultType="string" parameterType="string">
-    select qusetion
-    FROM mmall_mall
+    select question
+    FROM mmall_user
     WHERE username = #{username}
   </select>
   <select id="checkAnswer" resultType="int" parameterType="map">
@@ -193,7 +193,7 @@
     count(1)
     from mmall_user
     where password =#{password}
-    and userId =#{userId}
+    and Id =#{userId}
   </select>
   <select id="checkEmailByUserId" resultType="int" parameterType="map">
     select count(1) from mmall_user
