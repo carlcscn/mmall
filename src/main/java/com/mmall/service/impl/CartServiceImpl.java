@@ -1,5 +1,6 @@
 package com.mmall.service.impl;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.mmall.common.Const;
 import com.mmall.common.ResponseCode;
@@ -9,7 +10,6 @@ import com.mmall.dao.ProductMapper;
 import com.mmall.pojo.Cart;
 import com.mmall.pojo.Product;
 import com.mmall.service.ICartService;
-import com.mmall.service.ICategoryService;
 import com.mmall.util.BigDecimalUtil;
 import com.mmall.util.PropertiesUtil;
 import com.mmall.vo.CartProductVo;
@@ -22,20 +22,17 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * Created by liu_changshi on 2019/3/18.
+ * Created by geely
  */
 @Service("iCartService")
-
-public class CartServiceImpl implements ICartService{
+public class CartServiceImpl implements ICartService {
 
     @Autowired
     private CartMapper cartMapper;
     @Autowired
     private ProductMapper productMapper;
 
-
-
-    public ServerResponse<CartVo> add(Integer userId, Integer productId, Integer count){
+    public ServerResponse<CartVo> add(Integer userId,Integer productId,Integer count){
         if(productId == null || count == null){
             return ServerResponse.createByErrorCodeMessage(ResponseCode.ILLEGAL_ARGUMENT.getCode(),ResponseCode.ILLEGAL_ARGUMENT.getDesc());
         }
@@ -60,11 +57,60 @@ public class CartServiceImpl implements ICartService{
         return this.list(userId);
     }
 
+    public ServerResponse<CartVo> update(Integer userId,Integer productId,Integer count){
+        if(productId == null || count == null){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.ILLEGAL_ARGUMENT.getCode(),ResponseCode.ILLEGAL_ARGUMENT.getDesc());
+        }
+        Cart cart = cartMapper.selectCartByUserIdProductId(userId,productId);
+        if(cart != null){
+            cart.setQuantity(count);
+        }
+        cartMapper.updateByPrimaryKey(cart);
+        return this.list(userId);
+    }
+
+    public ServerResponse<CartVo> deleteProduct(Integer userId,String productIds){
+        List<String> productList = Splitter.on(",").splitToList(productIds);
+        if(CollectionUtils.isEmpty(productList)){
+            return ServerResponse.createByErrorCodeMessage(ResponseCode.ILLEGAL_ARGUMENT.getCode(),ResponseCode.ILLEGAL_ARGUMENT.getDesc());
+        }
+        cartMapper.deleteByUserIdProductIds(userId,productList);
+        return this.list(userId);
+    }
+
 
     public ServerResponse<CartVo> list (Integer userId){
         CartVo cartVo = this.getCartVoLimit(userId);
         return ServerResponse.createBySuccess(cartVo);
     }
+
+
+
+    public ServerResponse<CartVo> selectOrUnSelect (Integer userId,Integer productId,Integer checked){
+        cartMapper.checkedOrUncheckedProduct(userId,productId,checked);
+        return this.list(userId);
+    }
+
+    public ServerResponse<Integer> getCartProductCount(Integer userId){
+        if(userId == null){
+            return ServerResponse.createBySuccess(0);
+        }
+        return ServerResponse.createBySuccess(cartMapper.selectCartProductCount(userId));
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     private CartVo getCartVoLimit(Integer userId){
         CartVo cartVo = new CartVo();
@@ -123,6 +169,7 @@ public class CartServiceImpl implements ICartService{
 
         return cartVo;
     }
+
     private boolean getAllCheckedStatus(Integer userId){
         if(userId == null){
             return false;
@@ -130,6 +177,29 @@ public class CartServiceImpl implements ICartService{
         return cartMapper.selectCartProductCheckedStatusByUserId(userId) == 0;
 
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
